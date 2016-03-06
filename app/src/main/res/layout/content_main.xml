@@ -12,19 +12,16 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.fufamilydeskwin7.smartcamera.MainActivity"
     tools:showIn="@layout/activity_main"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:weightSum="1">
     <org.opencv.android.JavaCameraView
         android:layout_width="500dp"
         android:layout_height="fill_parent"
         android:visibility="visible"
         android:id="@+id/tutorial1_activity_java_surface_view"
         opencv:show_fps="false"
-        opencv:camera_id="any" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/textview" />
+        opencv:camera_id="any"
+        android:layout_weight="0.45" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -66,6 +63,18 @@
             android:layout_height="wrap_content"
             android:text="sobel_X"
             android:id="@+id/sobelX" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="body"
+            android:id="@+id/bodybtn" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:id="@+id/textview" />
 
 </LinearLayout>

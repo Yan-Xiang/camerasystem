@@ -69,7 +69,6 @@ public class Imageprocessing {
         return Core.countNonZero(G11_C80100);
     }
 
-
     public static Mat RGB_cut_HSVs_return_rgb(Mat one_channel_img) {
         Mat mask_s = new Mat(one_channel_img.size(), CvType.CV_8UC1);
 //        Core.extractChannel(hsv, hsv_s, 1);
@@ -84,7 +83,6 @@ public class Imageprocessing {
         return one_channel_img;
     }
 
-
     public static Mat body_hsv(Mat img) {
         Mat hsv = new Mat();
         Imgproc.cvtColor(img, hsv, Imgproc.COLOR_RGB2HSV);
@@ -95,8 +93,8 @@ public class Imageprocessing {
 
         Mat hsv_h_mask = new Mat();
         Mat hsv_s_mask = new Mat();
-        Core.inRange(hsv_h, new Scalar(7), new Scalar(17), hsv_h_mask);
-        Core.inRange(hsv_s, new Scalar(40), new Scalar(128), hsv_s_mask);
+        Core.inRange(hsv_h, new Scalar(4), new Scalar(70), hsv_h_mask);
+        Core.inRange(hsv_s, new Scalar(20), new Scalar(128), hsv_s_mask);
         Imgproc.erode(hsv_h_mask, hsv_h_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5)), new Point(-1, -1), 1);
         Imgproc.erode(hsv_h_mask, hsv_h_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(2, 2)), new Point(-1, -1), 1);
         Imgproc.dilate(hsv_h_mask, hsv_h_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5)), new Point(-1, -1), 1);
@@ -107,13 +105,33 @@ public class Imageprocessing {
         Imgproc.dilate(hsv_s_mask, hsv_s_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5)), new Point(-1, -1), 1);
         Imgproc.dilate(hsv_s_mask, hsv_s_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(2, 2)), new Point(-1, -1), 1);
 
-
         Mat bodyrgb = new Mat();
         img.copyTo(bodyrgb, hsv_h_mask);
 //        bodyrgb.copyTo(bodyrgb, hsv_s_mask);
-
 //        img.copyTo(bodyrgb, hsv_s_mask);
+        return bodyrgb;
+    }
+    public static Mat body_YCbCr(Mat img) {
+        int avg_cb = 120;//YCbCr顏色空間膚色cb的平均值
+        int avg_cr = 155;//YCbCr顏色空間膚色cr的平均值
+        int skinRange = 22;//YCbCr顏色空間膚色的範圍
 
+
+        Mat hsv = new Mat();
+        Imgproc.cvtColor(img, hsv, Imgproc.COLOR_RGB2YCrCb);
+        Mat cr = new Mat();
+        Mat cb = new Mat();
+        Core.extractChannel(hsv, cr, 1);
+        Core.extractChannel(hsv, cb, 2);
+
+        Mat cr_mask = new Mat();
+        Mat cb_mask = new Mat();
+        Core.inRange(cr, new Scalar(avg_cr - skinRange), new Scalar(avg_cr + skinRange), cr_mask);
+        Core.inRange(cb, new Scalar(avg_cb - skinRange), new Scalar(avg_cb + skinRange), cb_mask);
+
+        Mat bodyrgb = new Mat();
+        img.copyTo(bodyrgb, cr_mask);
+        bodyrgb.copyTo(bodyrgb, cb_mask);
         return bodyrgb;
     }
 //----------------------------------------------------------------------------------------------------------

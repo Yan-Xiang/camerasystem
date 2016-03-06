@@ -34,25 +34,28 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     Size Camerasize;
 
     private TextView text;
-    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear;
+    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear, bodybtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        clear = (Button) findViewById(R.id.clear);
         hsvs_btn = (Button) findViewById(R.id.hsv_s_btn);
         G7C_btn = (Button) findViewById(R.id.G7_C_btn);
         G11C_btn = (Button) findViewById(R.id.G11_C_btn);
         sobelY = (Button) findViewById(R.id.sobelY);
         sobelX = (Button) findViewById(R.id.sobelX);
-        clear = (Button) findViewById(R.id.clear);
+        bodybtn = (Button) findViewById(R.id.bodybtn);
 
+        clear.setOnClickListener(this);
         hsvs_btn.setOnClickListener(this);
         G7C_btn.setOnClickListener(this);
         G11C_btn.setOnClickListener(this);
         sobelY.setOnClickListener(this);
         sobelX.setOnClickListener(this);
-        clear.setOnClickListener(this);
+        bodybtn.setOnClickListener(this);
+
 
 
         text = (TextView) findViewById(R.id.textview);
@@ -110,29 +113,31 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 //        Log.i(TAG, "camera star");
         mRgba = inputFrame.rgba();
 //        Log.i(TAG, "inputFrame.rgba()");
-
+        Mat hsvvalue = new Mat();
+        hsvvalue = mRgba.submat(mRgba.width()/2-1, mRgba.width()/2, mRgba.height()/2-1,mRgba.height()/2);
         Mat img = new Mat();
-//        Mat size = new Mat();
         Imgproc.resize(mRgba, img, new Size(320, 240));
 //        Core.transpose(mRgba, mRgba);
 //        Core.flip(mRgba, mRgba, 1);
-        img = Imageprocessing.get_halfimg(img, 0);
-//        Log.i(TAG, "get_halfimg");
+        Mat halfimg = Imageprocessing.get_halfimg(img, 0);
 
-        Mat hsv = Imageprocessing.RGB2HSV(img);
+
+        Mat hsv = Imageprocessing.RGB2HSV(halfimg);
         hsv = Imageprocessing.get_HSV_s(hsv);
 
 
 //        Imgproc.cvtColor(one_channel_img, one_channel_img, Imgproc.COLOR_GRAY2RGBA);
 //        Imageprocessing.RGB_cut_HSVs_return_rgb(hsv);
 //        Imgproc.resize(halfimg_do_S, halfimg_do_S, new Size(mRgba.height(), mRgba.width() / 3));
-
+        Mat sobel_tmp = new Mat();
         HSVs = Imageprocessing.get_HSVs_points_value(hsv);
-        G7_C = Imageprocessing.get_G7_C80100_points_value(img);
-        G11_C = Imageprocessing.get_G11_C80100_points_value(img);
+        G7_C = Imageprocessing.get_G7_C80100_points_value(halfimg);
+        G11_C = Imageprocessing.get_G11_C80100_points_value(halfimg);
+        Imgproc.Canny(Imageprocessing.sobel_outputgray_X(halfimg), sobel_tmp, 80, 100);
+        Imageprocessing.sobel_outputgray_Y(halfimg);
         Log.i(TAG, "                                        S " + String.valueOf(HSVs) + "  G7_C " + String.valueOf(G7_C) + "  G11_C " + String.valueOf(G11_C));
 
-        String txt = "HSVs: " + HSVs + "  G7_C: " + G7_C + "  G11_C: " + G11_C;
+
         Mat tmp = new Mat();
         if (model == 1) {
             mRgba = Imageprocessing.model_HSV_s(mRgba);
@@ -147,14 +152,34 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             Imgproc.cvtColor(Imageprocessing.sobel_outputgray_Y(img), tmp, Imgproc.COLOR_GRAY2BGRA);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }
+        else if (model == 6) {
+//            mRgba = Imageprocessing.body_hsv(mRgba);
+            mRgba = Imageprocessing.body_YCbCr(mRgba);
+        }
 
 
-        if (HSVs > 2000 || G7_C > 500 || G11_C > 150) {
+        if (HSVs > 2000  ) {
+            String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
-
         } else {
+            String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
+        }
 
+        if (G7_C > 500) {
+            String txt = "  G7_C: " + G7_C;
+            Core.putText(mRgba, txt, new Point(mRgba.width() / 3, mRgba.height() - 20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
+        } else {
+            String txt = "  G7_C: " + G7_C;
+            Core.putText(mRgba, txt, new Point(mRgba.width() / 3, mRgba.height() - 20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
+        }
+
+        if (G11_C > 150) {
+            String txt = "  G11_C: " + G11_C;
+            Core.putText(mRgba, txt, new Point(mRgba.width() / 3 * 2, mRgba.height() - 20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
+        } else {
+            String txt = "  G11_C: " + G11_C;
+            Core.putText(mRgba, txt, new Point(mRgba.width() / 3 * 2, mRgba.height() - 20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
         }
 //        Mat halfimg_do_S = mRgba.submat(0, mRgba.height() / 3, 0, mRgba.width());
 //        Mat hsv = new Mat();
@@ -172,6 +197,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
 
         Core.rectangle(mRgba,new Point(1,1),new Point(mRgba.width()-5, mRgba.height() / 3-5),new Scalar(255,255,0),5);
+
+        Core.rectangle(mRgba,new Point(mRgba.width()/2-20-5,mRgba.height()/2-20-5),new Point(mRgba.width()/2+20-5, mRgba.height()/2+20-5),new Scalar(255,255,0),5);
 //        halfimg_do_S.release();
         return mRgba;
     }
@@ -264,17 +291,20 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     @Override
     public void onClick(View v) {
-        if (v == hsvs_btn) {
+        if (v == clear) {
+            model = 0;
+        }
+        else if (v == hsvs_btn) {
             model = 1;
-            text.setText("HsV_S");
+            text.setText("HsV_S:2000");
         }
         else if (v == G7C_btn) {
             model = 2;
-            text.setText("G7_C");
+            text.setText("G7_C:500");
         }
         else if (v == G11C_btn) {
             model = 3;
-            text.setText("G11_C");
+            text.setText("G11_C:150");
         }
         else if (v == sobelY) {
             model = 4;
@@ -284,9 +314,10 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             model = 5;
             text.setText("sobel_X");
         }
-        else if (v == clear) {
-            model = 0;
-
+        else if (v == bodybtn) {
+            model = 6;
+            text.setText("boby");
         }
+
     }
 }
