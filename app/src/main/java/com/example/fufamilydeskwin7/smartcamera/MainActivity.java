@@ -57,13 +57,10 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         bodybtn.setOnClickListener(this);
 
 
-
         text = (TextView) findViewById(R.id.textview);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-
 
 
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -77,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 //                        .setAction("Action", null).show();
 //            }
 //        });
-
      /*   if (imgcount == updatespeed) {
             Log.i(TAG, "text");
             value.setLength(0);
@@ -89,10 +85,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                 text.setBackgroundColor(0xFFFF0000);
             } else {
                 text.setBackgroundColor(0xFF00FF00);
-
             }
         }*/
-
 
     }
 
@@ -129,13 +123,18 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 //        Imgproc.cvtColor(one_channel_img, one_channel_img, Imgproc.COLOR_GRAY2RGBA);
 //        Imageprocessing.RGB_cut_HSVs_return_rgb(hsv);
 //        Imgproc.resize(halfimg_do_S, halfimg_do_S, new Size(mRgba.height(), mRgba.width() / 3));
-        Mat sobel_tmp = new Mat();
+
         HSVs = Imageprocessing.get_HSVs_points_value(hsv);
         G7_C = Imageprocessing.get_G7_C80100_points_value(halfimg);
         G11_C = Imageprocessing.get_G11_C80100_points_value(halfimg);
+        Mat sobel_tmp = new Mat();
+        Boolean wall, pillar;
         Imgproc.Canny(Imageprocessing.sobel_outputgray_X(halfimg), sobel_tmp, 80, 100);
-        Imageprocessing.sobel_outputgray_Y(halfimg);
-        Log.i(TAG, "                                        S " + String.valueOf(HSVs) + "  G7_C " + String.valueOf(G7_C) + "  G11_C " + String.valueOf(G11_C));
+        wall = Imageprocessing.getcol(sobel_tmp);
+
+        Imgproc.Canny(Imageprocessing.sobel_outputgray_Y(halfimg), sobel_tmp, 80, 100);
+        pillar = Imageprocessing.getcol(sobel_tmp);
+//        Log.i(TAG, "                      S " + String.valueOf(HSVs) + "  G7_C " + String.valueOf(G7_C) + "  G11_C " + String.valueOf(G11_C));
 
 
         Mat tmp = new Mat();
@@ -181,6 +180,23 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             String txt = "  G11_C: " + G11_C;
             Core.putText(mRgba, txt, new Point(mRgba.width() / 3 * 2, mRgba.height() - 20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
         }
+
+        if (!wall) {
+            String txt = " __ ";
+            Core.putText(mRgba, txt, new Point(20, mRgba.height() - 80), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
+        } else {
+            String txt = " __ ";
+            Core.putText(mRgba, txt, new Point(20, mRgba.height() - 80), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
+        }
+        if (!pillar) {
+            String txt = " II ";
+            Core.putText(mRgba, txt, new Point(120, mRgba.height() - 80), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
+        } else {
+            String txt = " II ";
+            Core.putText(mRgba, txt, new Point(120, mRgba.height() - 80), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
+        }
+
+
 //        Mat halfimg_do_S = mRgba.submat(0, mRgba.height() / 3, 0, mRgba.width());
 //        Mat hsv = new Mat();
 //        Imgproc.cvtColor(halfimg_do_S, hsv, Imgproc.COLOR_RGB2HSV);
@@ -190,9 +206,6 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 //
 //        Core.inRange(hsv_s, new Scalar(76), new Scalar(255), mask_s);
 //        halfimg_do_S.copyTo(halfimg_do_S, mask_s);
-
-
-
 
 
 

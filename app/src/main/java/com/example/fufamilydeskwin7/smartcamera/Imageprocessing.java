@@ -179,6 +179,62 @@ public class Imageprocessing {
         return onelayer;
     }
 
+    public static Boolean getcol(Mat img) {//垂直
+        int widthvalue = img.width()/10;
+        int[] num = new int[9];
+        num[0] = Core.countNonZero(img.col(widthvalue));
+        num[1] = Core.countNonZero(img.col(widthvalue * 2));
+        num[2] = Core.countNonZero(img.col(widthvalue * 3));
+        num[3] = Core.countNonZero(img.col(widthvalue * 4));
+        num[4] = Core.countNonZero(img.col(widthvalue * 5));
+        num[5] = Core.countNonZero(img.col(widthvalue * 6));
+        num[6] = Core.countNonZero(img.col(widthvalue * 7));
+        num[7] = Core.countNonZero(img.col(widthvalue * 8));
+        num[8] = Core.countNonZero(img.col(widthvalue * 9));
+        int min, max, value;
+        min=max=num[0];
+        for(char i=0;i<num.length;i++) {
+            if(num[i]>max)
+                max=num[i];
+            if(num[i]<min)
+                min=num[i];
+        }
+        value = max - min;
+        if (value < 7 && (max + min) /2 < 5 && (max + min) /2 > 1) {
+            //有牆壁跟地面的線
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    public static Boolean getrow(Mat img) {//水平
+
+        int widthvalue = img.width()/6;
+        int[] num = new int[6];
+        num[0] = Core.countNonZero(img.row(widthvalue));
+        num[1] = Core.countNonZero(img.row(widthvalue * 2));
+        num[2] = Core.countNonZero(img.row(widthvalue * 3));
+        num[3] = Core.countNonZero(img.row(widthvalue * 4));
+        num[4] = Core.countNonZero(img.row(widthvalue * 5));
+
+        int min, max, value;
+        min=max=num[0];
+        for(char i=0;i<num.length;i++) {
+            if(num[i]>max)
+                max=num[i];
+            if(num[i]<min)
+                min=num[i];
+        }
+        value = max - min;
+        if (value < 7 && (max + min) /2 < 7 && (max + min) /2 > 1) {
+            //有柱子的線
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
 //---------------------------------------------------------------------------------------------------------------------------
 
