@@ -139,11 +139,11 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         Mat tmp = new Mat();
         if (model == 1) {
-            mRgba = Imageprocessing.model_HSV_s(mRgba);
+            mRgba = Imageprocessing.showmodel_HSV_s(mRgba);
         }else if (model == 2) {
-            mRgba = Imageprocessing.model_G7_C(mRgba);
+            mRgba = Imageprocessing.showmodel_G7_C(mRgba);
         }else if (model == 3) {
-            mRgba = Imageprocessing.model_G11_C(mRgba);
+            mRgba = Imageprocessing.showmodel_G11_C(mRgba);
         }else if (model == 4) {
             Imgproc.cvtColor(Imageprocessing.sobel_outputgray_X(img), tmp, Imgproc.COLOR_GRAY2BGRA);
             Imgproc.resize(tmp, mRgba, Camerasize);

@@ -49,6 +49,7 @@ public class Imageprocessing {
     public static int get_HSVs_points_value(Mat HSV_s) {
         Mat mask_s = new Mat();
         Core.inRange(HSV_s, new Scalar(76), new Scalar(255), mask_s);
+        mask_s = hsv_s_erode_dilate(mask_s);
 //        get_HSV_s.copyTo(get_HSV_s, mask_s); //將原圖片經由遮罩過濾後，得到結果dst
         return Core.countNonZero(mask_s);
     }
@@ -82,7 +83,13 @@ public class Imageprocessing {
         //output Mat is hsv_s
         return one_channel_img;
     }
-
+    public static Mat hsv_s_erode_dilate(Mat img) {
+        Imgproc.erode(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+        Imgproc.dilate(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+        return img;
+    }
+    //----------------------------------------------------------------------------------------------
+    //取膚色區域↓↓↓ 用hsv
     public static Mat body_hsv(Mat img) {
         Mat hsv = new Mat();
         Imgproc.cvtColor(img, hsv, Imgproc.COLOR_RGB2HSV);
@@ -111,6 +118,7 @@ public class Imageprocessing {
 //        img.copyTo(bodyrgb, hsv_s_mask);
         return bodyrgb;
     }
+    //取膚色區域↓↓↓ 用YCbCr
     public static Mat body_YCbCr(Mat img) {
         int avg_cb = 120;//YCbCr顏色空間膚色cb的平均值
         int avg_cr = 155;//YCbCr顏色空間膚色cr的平均值
@@ -157,6 +165,7 @@ public class Imageprocessing {
 
         return onelayer;
     }
+
     public static Mat sobel_outputgray_X(Mat img) {
         Mat tmp = new Mat();
         Imgproc.cvtColor(img, tmp, Imgproc.COLOR_RGB2GRAY);
@@ -178,7 +187,7 @@ public class Imageprocessing {
 
         return onelayer;
     }
-
+//有無地面與牆壁接縫↓↓↓
     public static Boolean getcol(Mat img) {//垂直
         int widthvalue = img.width()/10;
         int[] num = new int[9];
@@ -208,6 +217,7 @@ public class Imageprocessing {
             return false;
         }
     }
+    //有無柱子↓↓↓
     public static Boolean getrow(Mat img) {//水平
 
         int widthvalue = img.width()/6;
@@ -236,6 +246,54 @@ public class Imageprocessing {
         }
     }
 
+//去除小石頭↓↓↓
+    public static Mat sobel_outputgray_XY_noGaussianBlur(Mat img) {
+        Mat tmp = new Mat();
+//        Imgproc.cvtColor(img, tmp, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.GaussianBlur(tmp, tmp, new Size(3, 3), 5, 5);
+        Imgproc.Sobel(img, tmp, CvType.CV_8U, 1, 0);
+
+        Core.convertScaleAbs(tmp, tmp, 10, 0);
+        Mat onelayer = new Mat();
+        Core.inRange(tmp, new Scalar(240), new Scalar(255), onelayer);
+//        Imgproc.erode_Y(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5)));
+        tmp.copyTo(tmp, onelayer);
+//        Core.convertScaleAbs(tmp, tmp, 2, 0);
+//        img.release();
+//        tmp.release();
+        return onelayer;
+    }
+    public static Mat Tile_dilate(Mat img) {
+//        Imgproc.erode_Y(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)), new Point(-1, -1), 3);
+        Imgproc.dilate(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3)), new Point(-1, -1), 3);
+        Mat onelayer = new Mat();
+        Core.inRange(img, new Scalar(250), new Scalar(255), onelayer);
+        img.copyTo(img, onelayer);
+        return img;
+    }
+    public static Mat Tile_erode(Mat img) {
+        Imgproc.erode(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10, 10)), new Point(-1, -1), 1);
+        Mat onelayer = new Mat();
+        Core.inRange(img, new Scalar(253), new Scalar(255), onelayer);
+        img.copyTo(img, onelayer);
+        return img;
+    }
+    public static Mat Tile_dilate2(Mat img) {
+//        Imgproc.erode_Y(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)), new Point(-1, -1), 3);
+        Imgproc.dilate(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7)), new Point(-1, -1), 3);
+        Mat onelayer = new Mat();
+        Core.inRange(img, new Scalar(250), new Scalar(255), onelayer);
+        img.copyTo(img, onelayer);
+        return img;
+    }
+    public static Mat Tile_erode2(Mat img) {
+        Imgproc.erode(img, img, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(20, 20)), new Point(-1, -1), 1);
+        Mat onelayer = new Mat();
+        Core.inRange(img, new Scalar(253), new Scalar(255), onelayer);
+        img.copyTo(img, onelayer);
+        return img;
+    }
+//去除小石頭↑↑↑
 //---------------------------------------------------------------------------------------------------------------------------
 
 
@@ -361,7 +419,7 @@ public class Imageprocessing {
         Log.i(TAG, "getimagevalue finish");
     }
 
-    public static Mat model_HSV_s(Mat img) {
+    public static Mat showmodel_HSV_s(Mat img) {
         Mat hsv = new Mat();
         Mat rbgcut = new Mat();
         Mat hsv_s = new Mat();
@@ -371,6 +429,7 @@ public class Imageprocessing {
         hsv.release();
         Mat mask_s = new Mat(hsv_s.size(), CvType.CV_8UC1);
         Core.inRange(hsv_s, new Scalar(76), new Scalar(255), mask_s);
+        mask_s = hsv_s_erode_dilate(mask_s);
         img.copyTo(rbgcut, mask_s);
 //        Imgproc.cvtColor(mask_s, rbgcut, Imgproc.COLOR_GRAY2BGRA);
         mask_s.release();
@@ -378,13 +437,13 @@ public class Imageprocessing {
         return rbgcut;
     }
 
-    public static Mat model_G7_C(Mat img) {
+    public static Mat showmodel_G7_C(Mat img) {
         Imgproc.GaussianBlur(img, img, new Size(5, 5), 3, 3);
         Imgproc.Canny(img, img, 80, 100);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_GRAY2BGRA);
         return img;
     }
-    public static Mat model_G11_C(Mat img) {
+    public static Mat showmodel_G11_C(Mat img) {
         Imgproc.GaussianBlur(img, img, new Size(11, 11), 3, 3);
         Imgproc.Canny(img, img, 80, 100);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_GRAY2BGRA);
