@@ -310,6 +310,7 @@ public class Imageprocessing {
 
 
 
+//這是以前我用的很亂不用看 ↓↓↓
 
     public static void getimagevalue(Mat orgimageMat) {
         StringBuilder valuetext = new StringBuilder();
@@ -418,7 +419,9 @@ public class Imageprocessing {
 //        filenumber++;
         Log.i(TAG, "getimagevalue finish");
     }
+//這是以前我用的很亂不用看 ↑↑↑
 
+//為顯示結果特別而外做的 showmodel
     public static Mat showmodel_HSV_s(Mat img) {
         Mat hsv = new Mat();
         Mat rbgcut = new Mat();
