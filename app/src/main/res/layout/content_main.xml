@@ -69,6 +69,12 @@
             android:layout_height="wrap_content"
             android:text="body"
             android:id="@+id/bodybtn" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="偵測線"
+            android:id="@+id/linebtn" />
     </LinearLayout>
 
     <TextView

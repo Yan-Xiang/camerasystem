@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     Size Camerasize;
 
     private TextView text;
-    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear, bodybtn;
+    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear, bodybtn, linebtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         sobelY = (Button) findViewById(R.id.sobelY);
         sobelX = (Button) findViewById(R.id.sobelX);
         bodybtn = (Button) findViewById(R.id.bodybtn);
+        linebtn = (Button) findViewById(R.id.linebtn);
 
         clear.setOnClickListener(this);
         hsvs_btn.setOnClickListener(this);
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         sobelY.setOnClickListener(this);
         sobelX.setOnClickListener(this);
         bodybtn.setOnClickListener(this);
-
+        linebtn.setOnClickListener(this);
 
         text = (TextView) findViewById(R.id.textview);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
@@ -139,11 +140,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         Mat tmp = new Mat();
         if (model == 1) {
-            mRgba = Imageprocessing.showmodel_HSV_s(mRgba);
+            tmp = Imageprocessing.showmodel_HSV_s(img);
+            Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 2) {
-            mRgba = Imageprocessing.showmodel_G7_C(mRgba);
+            tmp = Imageprocessing.showmodel_G7_C(img);
+            Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 3) {
-            mRgba = Imageprocessing.showmodel_G11_C(mRgba);
+            tmp = Imageprocessing.showmodel_G11_C(img);
+            Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 4) {
             Imgproc.cvtColor(Imageprocessing.sobel_outputgray_X(img), tmp, Imgproc.COLOR_GRAY2BGRA);
             Imgproc.resize(tmp, mRgba, Camerasize);
@@ -153,13 +157,25 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         }
         else if (model == 6) {
 //            mRgba = Imageprocessing.body_hsv(mRgba);
-            mRgba = Imageprocessing.body_YCbCr(mRgba);
+            tmp = Imageprocessing.body_YCbCr(img);
+            Imgproc.resize(tmp, mRgba, Camerasize);
         }
-
+        else if (model == 7) {
+            tmp = Imageprocessing.HoughLines(img, Imageprocessing.clear_tile(img));
+            Imgproc.resize(tmp, mRgba, Camerasize);
+        }
+        tmp.release();
 
         if (HSVs > 2000  ) {
             String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
+
+//            Context context1 = getApplication();
+//            CharSequence text1 = "Short Toast";      //設定顯示的訊息
+//            int duration1 = Toast.LENGTH_SHORT;   //設定訊息停留長短
+//            Toast toast1 = Toast.makeText(context1, text1, duration1); //建立物件
+//            toast1.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
+//            toast1.show();
         } else {
             String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
@@ -330,6 +346,10 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         else if (v == bodybtn) {
             model = 6;
             text.setText("boby");
+        }
+        else if (v == linebtn) {
+            model = 7;
+            text.setText("line");
         }
 
     }
