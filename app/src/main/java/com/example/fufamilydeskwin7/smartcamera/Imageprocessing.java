@@ -22,7 +22,7 @@ public class Imageprocessing {
         if (vertical == 1) {
 //            halforg = orgimg.submat(0, orgimg.height(), 0, orgimg.width() / 3);
             return orgimg.submat(0, orgimg.height(), 0, orgimg.width() / 3);
-
+//            return halforg;
         } else {
 //            halforg = orgimg.submat(0, orgimg.height() / 3, 0, orgimg.width());
             return orgimg.submat(0, orgimg.height() / 3, 0, orgimg.width());
@@ -220,7 +220,7 @@ public class Imageprocessing {
     //有無柱子↓↓↓
     public static Boolean getrow(Mat img) {//水平
 
-        int widthvalue = img.width()/6;
+        int widthvalue = img.height()/6;
         int[] num = new int[6];
         num[0] = Core.countNonZero(img.row(widthvalue));
         num[1] = Core.countNonZero(img.row(widthvalue * 2));
@@ -275,14 +275,15 @@ public class Imageprocessing {
 //去除小石頭↑↑↑
 
 //取線
-    public static Mat HoughLines(Mat img, Mat mask) {
+    public static Mat HoughLines(Mat img, Mat mask, int line_count) {
+        int angle_range = 10;
+//        int line_count = 2;
         Mat doimg = new Mat();
         Mat G7_C80100 = new Mat();
 
-
         Imgproc.GaussianBlur(img, G7_C80100, new Size(5, 5), 3, 3);
         Imgproc.Canny(G7_C80100, G7_C80100, 80, 100);
-
+        Imgproc.dilate(G7_C80100, G7_C80100, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(1, 1)), new Point(-1, -1), 1);
         G7_C80100.copyTo(doimg, mask);
 
         Mat lines = new Mat();
@@ -292,32 +293,84 @@ public class Imageprocessing {
 
         Imgproc.HoughLinesP(doimg, lines, 1, Math.PI / 180, threshold, minLineSize, lineGap);
         Imgproc.cvtColor(doimg, doimg, Imgproc.COLOR_GRAY2BGRA);
+        Log.i("m", "new line change and get 斜率=====================================");
+        int[] a = new int[lines.cols()];
+        double[] x1 = new double[lines.cols()];
+        double[] x2 = new double[lines.cols()];
+        double[] y1 = new double[lines.cols()];
+        double[] y2 = new double[lines.cols()];
+        int[] hist = new int[180 / angle_range % 1000 + 1];
         for (int x = 0; x < lines.cols(); x++) {
             double[] vec = lines.get(0, x);
-            double x1 = vec[0],
-                    y1 = vec[1],
-                    x2 = vec[2],
-                    y2 = vec[3];
-            Point start = new Point(x1, y1);
-            Point end = new Point(x2, y2);
+            x1[x] = vec[0];
+            y1[x] = vec[1];
+            x2[x] = vec[2];
+            y2[x] = vec[3];
 
-            Core.line(doimg, start, end, new Scalar(255, 0, 0), 2);
+            a[x] = (int) (Math.atan2((y1[x] - y2[x]), (x2[x] - x1[x])) * (180 / Math.PI) + 90.0);
+            Log.i("mline a", String.valueOf(a[x]));
+            Log.i("mline hist a", String.valueOf(hist[a[x] / angle_range]));
+            hist[a[x] / angle_range] += 1;
 
+            Point start = new Point(x1[x], y1[x]);
+            Point end = new Point(x2[x], y2[x]);
+
+            Core.line(doimg, start, end, new Scalar(180, 0, 0), 2);
+
+        }
+//        Log.i("mline a length", String.valueOf(a.length));
+//        for (int x = 0; x < a.length; x++) {
+//            Log.i("mline a", x + "   " + String.valueOf(a[x]));
+//        }
+//        Log.i("mline hist length", String.valueOf(hist.length));
+//        for (int x = 0; x < hist.length; x++) {
+//            Log.i("mline hist", x*angle_range + "   " + String.valueOf(hist[x]));
+//        }
+
+        int[] find_which_line = new int[angle_range];
+        for (int i = 0; i < hist.length; i++) {
+            if (hist[i] <= line_count && hist[i] > 0) {
+                for (int x = 0; x < angle_range; x++) {
+                    find_which_line[x] = a.length + 1;
+                }
+
+                for (int x = 0; x < angle_range; x++) {
+//                    find_which_line[x] = Math.abs(Arrays.binarySearch(a, i * angle_range + x));
+//                    Log.i("mline find which line", String.valueOf(i * angle_range + x) + ":  " + x + " " + String.valueOf(Arrays.binarySearch(a, i * angle_range + x)));
+                    for (int j = 0; j < a.length; j++) {
+                        if (a[j] == i * angle_range + x) {
+                            Log.i("mline find which line", String.valueOf(i * angle_range + x) + ":  " + x + " " + String.valueOf(j));
+                            find_which_line[x] = j;
+
+                            Point start = new Point(x1[j], y1[j]);
+                            Point end = new Point(x2[j], y2[j]);
+                            Core.line(doimg, start, end, new Scalar(0, 255, 0), 2);
+//                            Log.i("mline find which line", String.valueOf(find_which_line[x]));
+                            Log.i("mline draw line", String.valueOf(a[j]));
+
+                        } else {
+                            find_which_line[x] = a.length + 1;
+                        }
+                    }
+                }
+
+//                find[1] = Math.abs(Arrays.binarySearch(a, i * 2 + 1));
+//                Log.i("mline find", String.valueOf(Math.abs(Arrays.binarySearch(a, i * 2))));
+
+//                for (int x = 0; x < find_which_line.length; x++) {
+//                    if (find_which_line[x] < a.length) {
+//                        Point start = new Point(x1[find_which_line[x]], y1[find_which_line[x]]);
+//                        Point end = new Point(x2[find_which_line[x]], y2[find_which_line[x]]);
+//                        Core.line(doimg, start, end, new Scalar(0, 255, 0), 2);
+//                        Log.i("mline find which line", String.valueOf(find_which_line[x]));
+//                        Log.i("mline draw line", String.valueOf(a[find_which_line[x]]));
+//                    }
+//                }
+            }
         }
         return doimg;
     }
 //---------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
 
 
 

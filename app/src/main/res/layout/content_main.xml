@@ -73,8 +73,20 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="去小石頭"
+            android:id="@+id/stone" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="偵測線"
             android:id="@+id/linebtn" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="偵測線2"
+            android:id="@+id/linebtn2" />
     </LinearLayout>
 
     <TextView

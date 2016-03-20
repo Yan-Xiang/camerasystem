@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     Size Camerasize;
 
     private TextView text;
-    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear, bodybtn, linebtn;
+    private Button hsvs_btn, G7C_btn, G11C_btn, sobelY, sobelX, clear, bodybtn, stone, linebtn, linebtn2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +47,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         sobelY = (Button) findViewById(R.id.sobelY);
         sobelX = (Button) findViewById(R.id.sobelX);
         bodybtn = (Button) findViewById(R.id.bodybtn);
+        stone = (Button) findViewById(R.id.stone);
         linebtn = (Button) findViewById(R.id.linebtn);
+        linebtn2 = (Button) findViewById(R.id.linebtn2);
 
         clear.setOnClickListener(this);
         hsvs_btn.setOnClickListener(this);
@@ -56,7 +58,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         sobelY.setOnClickListener(this);
         sobelX.setOnClickListener(this);
         bodybtn.setOnClickListener(this);
+        stone.setOnClickListener(this);
         linebtn.setOnClickListener(this);
+        linebtn2.setOnClickListener(this);
 
         text = (TextView) findViewById(R.id.textview);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
@@ -108,8 +112,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 //        Log.i(TAG, "camera star");
         mRgba = inputFrame.rgba();
 //        Log.i(TAG, "inputFrame.rgba()");
-        Mat hsvvalue = new Mat();
-        hsvvalue = mRgba.submat(mRgba.width()/2-1, mRgba.width()/2, mRgba.height()/2-1,mRgba.height()/2);
+//        Mat hsvvalue = new Mat();
+//        hsvvalue = mRgba.submat(mRgba.width()/2-1, mRgba.width()/2, mRgba.height()/2-1,mRgba.height()/2);
         Mat img = new Mat();
         Imgproc.resize(mRgba, img, new Size(320, 240));
 //        Core.transpose(mRgba, mRgba);
@@ -134,48 +138,51 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         wall = Imageprocessing.getcol(sobel_tmp);
 
         Imgproc.Canny(Imageprocessing.sobel_outputgray_Y(halfimg), sobel_tmp, 80, 100);
-        pillar = Imageprocessing.getcol(sobel_tmp);
+        pillar = Imageprocessing.getrow(sobel_tmp);
 //        Log.i(TAG, "                      S " + String.valueOf(HSVs) + "  G7_C " + String.valueOf(G7_C) + "  G11_C " + String.valueOf(G11_C));
 
-
+        Mat modelimg = new Mat();
         Mat tmp = new Mat();
+        Imgproc.resize(mRgba, modelimg, new Size(320, 240));
         if (model == 1) {
-            tmp = Imageprocessing.showmodel_HSV_s(img);
+            tmp = Imageprocessing.showmodel_HSV_s(modelimg);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 2) {
-            tmp = Imageprocessing.showmodel_G7_C(img);
+            tmp = Imageprocessing.showmodel_G7_C(modelimg);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 3) {
-            tmp = Imageprocessing.showmodel_G11_C(img);
+            tmp = Imageprocessing.showmodel_G11_C(modelimg);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 4) {
-            Imgproc.cvtColor(Imageprocessing.sobel_outputgray_X(img), tmp, Imgproc.COLOR_GRAY2BGRA);
+            Imgproc.cvtColor(Imageprocessing.sobel_outputgray_X(modelimg), tmp, Imgproc.COLOR_GRAY2BGRA);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }else if (model == 5) {
-            Imgproc.cvtColor(Imageprocessing.sobel_outputgray_Y(img), tmp, Imgproc.COLOR_GRAY2BGRA);
+            Imgproc.cvtColor(Imageprocessing.sobel_outputgray_Y(modelimg), tmp, Imgproc.COLOR_GRAY2BGRA);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }
         else if (model == 6) {
 //            mRgba = Imageprocessing.body_hsv(mRgba);
-            tmp = Imageprocessing.body_YCbCr(img);
+            tmp = Imageprocessing.body_YCbCr(modelimg);
             Imgproc.resize(tmp, mRgba, Camerasize);
         }
         else if (model == 7) {
-            tmp = Imageprocessing.HoughLines(img, Imageprocessing.clear_tile(img));
+            modelimg.copyTo(tmp, Imageprocessing.clear_tile(modelimg));
             Imgproc.resize(tmp, mRgba, Camerasize);
         }
-        tmp.release();
+        else if (model == 8) {
+            tmp = Imageprocessing.HoughLines(modelimg, Imageprocessing.clear_tile(modelimg), 1);
+            Imgproc.resize(tmp, mRgba, Camerasize);
+        }
+        else if (model == 9) {
+            tmp = Imageprocessing.HoughLines(modelimg, Imageprocessing.clear_tile(modelimg), 2);
+            Imgproc.resize(tmp, mRgba, Camerasize);
+        }
+//        tmp.release();
 
         if (HSVs > 2000  ) {
             String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 0, 0));
 
-//            Context context1 = getApplication();
-//            CharSequence text1 = "Short Toast";      //設定顯示的訊息
-//            int duration1 = Toast.LENGTH_SHORT;   //設定訊息停留長短
-//            Toast toast1 = Toast.makeText(context1, text1, duration1); //建立物件
-//            toast1.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
-//            toast1.show();
         } else {
             String txt = "HSVs: " + HSVs;
             Core.putText(mRgba, txt, new Point(20, mRgba.height()-20), Core.FONT_HERSHEY_DUPLEX, 1.2, new Scalar(255, 255, 255));
@@ -347,9 +354,17 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             model = 6;
             text.setText("boby");
         }
-        else if (v == linebtn) {
+        else if (v == stone) {
             model = 7;
-            text.setText("line");
+            text.setText("stone");
+        }
+        else if (v == linebtn) {
+            model = 8;
+            text.setText("one line");
+        }
+        else if (v == linebtn2) {
+            model = 9;
+            text.setText("two line");
         }
 
     }
