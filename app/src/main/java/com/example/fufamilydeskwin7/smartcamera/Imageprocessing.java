@@ -137,6 +137,12 @@ public class Imageprocessing {
         Core.inRange(cr, new Scalar(avg_cr - skinRange), new Scalar(avg_cr + skinRange), cr_mask);
         Core.inRange(cb, new Scalar(avg_cb - skinRange), new Scalar(avg_cb + skinRange), cb_mask);
 
+        Imgproc.erode(cr_mask, cr_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+        Imgproc.dilate(cr_mask, cr_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+        Imgproc.erode(cb_mask, cb_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+        Imgproc.dilate(cb_mask, cb_mask, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4)), new Point(-1, -1), 1);
+
+
         Mat bodyrgb = new Mat();
         img.copyTo(bodyrgb, cr_mask);
         bodyrgb.copyTo(bodyrgb, cb_mask);
@@ -260,10 +266,10 @@ public class Imageprocessing {
         Core.inRange(onelayer, new Scalar(250), new Scalar(255), onelayer);
         Imgproc.erode(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10, 10)), new Point(-1, -1), 1);
         Core.inRange(onelayer, new Scalar(253), new Scalar(255), onelayer);
-        Imgproc.dilate(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7)), new Point(-1, -1), 3);
-        Core.inRange(onelayer, new Scalar(250), new Scalar(255), onelayer);
-        Imgproc.erode(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(20, 20)), new Point(-1, -1), 1);
-        Core.inRange(onelayer, new Scalar(253), new Scalar(255), onelayer);
+//        Imgproc.dilate(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7)), new Point(-1, -1), 3);
+//        Core.inRange(onelayer, new Scalar(250), new Scalar(255), onelayer);
+//        Imgproc.erode(onelayer, onelayer, Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(20, 20)), new Point(-1, -1), 1);
+//        Core.inRange(onelayer, new Scalar(253), new Scalar(255), onelayer);
         Core.bitwise_not(onelayer, onelayer);
 //        Mat output = new Mat();
 //        img.copyTo(output, onelayer);
@@ -277,7 +283,7 @@ public class Imageprocessing {
 //取線
     public static Mat HoughLines(Mat img, Mat mask, int line_count) {
         int angle_range = 10;
-//        int line_count = 2;
+        //int line_count = 2;
         Mat doimg = new Mat();
         Mat G7_C80100 = new Mat();
 
@@ -306,46 +312,48 @@ public class Imageprocessing {
             y1[x] = vec[1];
             x2[x] = vec[2];
             y2[x] = vec[3];
-
+            //a=每條線的斜率
             a[x] = (int) (Math.atan2((y1[x] - y2[x]), (x2[x] - x1[x])) * (180 / Math.PI) + 90.0);
             Log.i("mline a", String.valueOf(a[x]));
             Log.i("mline hist a", String.valueOf(hist[a[x] / angle_range]));
+            //作統計分類 依各種範圍斜率數座做統計
             hist[a[x] / angle_range] += 1;
-
+            //畫判斷出來的線
             Point start = new Point(x1[x], y1[x]);
             Point end = new Point(x2[x], y2[x]);
-
-            Core.line(doimg, start, end, new Scalar(180, 0, 0), 2);
+            Core.line(doimg, start, end, new Scalar(255, 0, 0), 1);
 
         }
-//        Log.i("mline a length", String.valueOf(a.length));
-//        for (int x = 0; x < a.length; x++) {
-//            Log.i("mline a", x + "   " + String.valueOf(a[x]));
-//        }
-//        Log.i("mline hist length", String.valueOf(hist.length));
-//        for (int x = 0; x < hist.length; x++) {
-//            Log.i("mline hist", x*angle_range + "   " + String.valueOf(hist[x]));
-//        }
+    //        Log.i("mline a length", String.valueOf(a.length));
+    //        for (int x = 0; x < a.length; x++) {
+    //            Log.i("mline a", x + "   " + String.valueOf(a[x]));
+    //        }
+    //        Log.i("mline hist length", String.valueOf(hist.length));
+    //        for (int x = 0; x < hist.length; x++) {
+    //            Log.i("mline hist", x*angle_range + "   " + String.valueOf(hist[x]));
+    //        }
 
         int[] find_which_line = new int[angle_range];
         for (int i = 0; i < hist.length; i++) {
+            //hist中的數值在我們想要探討的範圍
             if (hist[i] <= line_count && hist[i] > 0) {
                 for (int x = 0; x < angle_range; x++) {
-                    find_which_line[x] = a.length + 1;
+                    find_which_line[x] = a.length + 1;//初始化 fine which line
                 }
-
+                //因hist中以區段做分割 所以要把區段中每個角度都做搜尋
                 for (int x = 0; x < angle_range; x++) {
-//                    find_which_line[x] = Math.abs(Arrays.binarySearch(a, i * angle_range + x));
-//                    Log.i("mline find which line", String.valueOf(i * angle_range + x) + ":  " + x + " " + String.valueOf(Arrays.binarySearch(a, i * angle_range + x)));
+    //                    find_which_line[x] = Math.abs(Arrays.binarySearch(a, i * angle_range + x));
+    //                    Log.i("mline find which line", String.valueOf(i * angle_range + x) + ":  " + x + " " + String.valueOf(Arrays.binarySearch(a, i * angle_range + x)));
                     for (int j = 0; j < a.length; j++) {
+                        //搜尋a中對應的值 是在第幾個位置
                         if (a[j] == i * angle_range + x) {
                             Log.i("mline find which line", String.valueOf(i * angle_range + x) + ":  " + x + " " + String.valueOf(j));
                             find_which_line[x] = j;
-
+                            //畫line
                             Point start = new Point(x1[j], y1[j]);
                             Point end = new Point(x2[j], y2[j]);
                             Core.line(doimg, start, end, new Scalar(0, 255, 0), 2);
-//                            Log.i("mline find which line", String.valueOf(find_which_line[x]));
+    //                            Log.i("mline find which line", String.valueOf(find_which_line[x]));
                             Log.i("mline draw line", String.valueOf(a[j]));
 
                         } else {
@@ -354,18 +362,18 @@ public class Imageprocessing {
                     }
                 }
 
-//                find[1] = Math.abs(Arrays.binarySearch(a, i * 2 + 1));
-//                Log.i("mline find", String.valueOf(Math.abs(Arrays.binarySearch(a, i * 2))));
+    //                find[1] = Math.abs(Arrays.binarySearch(a, i * 2 + 1));
+    //                Log.i("mline find", String.valueOf(Math.abs(Arrays.binarySearch(a, i * 2))));
 
-//                for (int x = 0; x < find_which_line.length; x++) {
-//                    if (find_which_line[x] < a.length) {
-//                        Point start = new Point(x1[find_which_line[x]], y1[find_which_line[x]]);
-//                        Point end = new Point(x2[find_which_line[x]], y2[find_which_line[x]]);
-//                        Core.line(doimg, start, end, new Scalar(0, 255, 0), 2);
-//                        Log.i("mline find which line", String.valueOf(find_which_line[x]));
-//                        Log.i("mline draw line", String.valueOf(a[find_which_line[x]]));
-//                    }
-//                }
+    //                for (int x = 0; x < find_which_line.length; x++) {
+    //                    if (find_which_line[x] < a.length) {
+    //                        Point start = new Point(x1[find_which_line[x]], y1[find_which_line[x]]);
+    //                        Point end = new Point(x2[find_which_line[x]], y2[find_which_line[x]]);
+    //                        Core.line(doimg, start, end, new Scalar(0, 255, 0), 2);
+    //                        Log.i("mline find which line", String.valueOf(find_which_line[x]));
+    //                        Log.i("mline draw line", String.valueOf(a[find_which_line[x]]));
+    //                    }
+    //                }
             }
         }
         return doimg;
